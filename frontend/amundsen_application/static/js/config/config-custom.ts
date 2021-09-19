@@ -15,7 +15,7 @@ const configCustom: AppConfigCustom = {
     notificationsEnabled: false,
   },
   indexDashboards: {
-    enabled: false,
+    enabled: true,
   },
   indexUsers: {
     enabled: false,
@@ -25,7 +25,7 @@ const configCustom: AppConfigCustom = {
   },
   userIdLabel: 'email address',
   issueTracking: {
-    enabled: false,
+    enabled: true,
   },
 };
 
