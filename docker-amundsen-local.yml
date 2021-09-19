@@ -14,7 +14,7 @@ services:
           - 7687:7687
       volumes:
           - ./example/docker/neo4j/conf:/var/lib/neo4j/conf
-          - ./.local/neo4j/data:/data
+          - neo4j_data:/data
       networks:
         - amundsennet
   elasticsearch:
@@ -30,6 +30,8 @@ services:
           hard: 65536
       environment:
         - discovery.type=single-node
+      volumes:
+        - es_data:/usr/share/elasticsearch/data
   amundsensearch:
       build:
         context: .
@@ -43,6 +45,11 @@ services:
         - amundsennet
       environment:
         - PROXY_ENDPOINT=es_amundsen
+        - FLASK_APP_MODULE_NAME=flaskoidc
+        - FLASK_APP_CLASS_NAME=FlaskOIDC
+        - FLASK_OIDC_CONFIG_URL=http://keycloak:8080/auth/realms/master/.well-known/openid-configuration
+        - SESSION_TYPE=sqlalchemy
+        - FLASK_OIDC_SECRET_KEY=base-flask-oidc-secret-key
   amundsenmetadata:
       build:
         context: .
@@ -55,7 +62,12 @@ services:
       networks:
         - amundsennet
       environment:
-         - PROXY_HOST=bolt://neo4j_amundsen
+        - PROXY_HOST=bolt://neo4j_amundsen
+        - FLASK_APP_MODULE_NAME=flaskoidc
+        - FLASK_APP_CLASS_NAME=FlaskOIDC
+        - FLASK_OIDC_CONFIG_URL=http://keycloak:8080/auth/realms/master/.well-known/openid-configuration
+        - SESSION_TYPE=sqlalchemy
+        - FLASK_OIDC_SECRET_KEY=base-flask-oidc-secret-key
   amundsenfrontend:
       build:
         args:
@@ -74,7 +86,38 @@ services:
       environment:
         - SEARCHSERVICE_BASE=http://amundsensearch:5001
         - METADATASERVICE_BASE=http://amundsenmetadata:5002
-        - FRONTEND_SVC_CONFIG_MODULE_CLASS=amundsen_application.config.TestConfig
+        - FLASK_APP_MODULE_NAME=flaskoidc
+        - FLASK_APP_CLASS_NAME=FlaskOIDC
+        - FLASK_OIDC_PROVIDER_NAME=keycloak
+        - FLASK_OIDC_SCOPES=openid email profile
+        - FLASK_OIDC_CLIENT_ID=amundsen-frontend
+        - FLASK_OIDC_CLIENT_SECRET=9f0df761-8107-4c64-8083-6d5ce9dd3aee
+        - FLASK_OIDC_REDIRECT_URI=/auth
+        - FLASK_OIDC_CONFIG_URL=http://keycloak:8080/auth/realms/master/.well-known/openid-configuration
+        - SESSION_TYPE=sqlalchemy
+        - FLASK_OIDC_SECRET_KEY=base-flask-oidc-secret-key
+      depends_on:
+        - keycloak
+
+  keycloak:
+      image: jboss/keycloak:15.0.2
+      container_name: keycloak
+      ports:
+        - 8080:8080
+        - 8443:8443
+      networks:
+        - amundsennet
+      environment:
+        - DB_VENDOR=h2
+        - KEYCLOAK_USER=admin
+        - KEYCLOAK_PASSWORD=secret
+      volumes:
+        - keycloak:/opt/jboss/keycloak/standalone/data
 
 networks:
   amundsennet:
+
+volumes:
+  keycloak:
+  es_data:
+  neo4j_data:

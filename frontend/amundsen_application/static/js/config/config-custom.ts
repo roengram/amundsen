@@ -18,7 +18,7 @@ const configCustom: AppConfigCustom = {
     enabled: true,
   },
   indexUsers: {
-    enabled: false,
+    enabled: true,
   },
   indexFeatures: {
     enabled: false,

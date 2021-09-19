@@ -1,6 +1,7 @@
 # Docker data files
 example/backup/
 example/docker/neo4j/plugins/
+example/docker/neo4j/conf/
 example/docker/es_data*
 .local/
 
